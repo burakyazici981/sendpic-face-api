@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/backend_api_service.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
+  final BackendApiService _backendApi = BackendApiService();
   
   AuthStatus _status = AuthStatus.initial;
   UserModel? _currentUser;
@@ -28,8 +30,17 @@ class AuthProvider with ChangeNotifier {
 
     try {
       await _authService.initialize();
-      _currentUser = _authService.currentUser;
-      _status = _currentUser != null ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+      await _backendApi.initialize();
+      
+      // Check if user is logged in via backend API
+      if (_backendApi.isLoggedIn) {
+        _status = AuthStatus.authenticated;
+        // Load user data from backend
+        await _loadUserFromBackend();
+      } else {
+        _currentUser = _authService.currentUser;
+        _status = _currentUser != null ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+      }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = 'Session yüklenemedi';
@@ -38,7 +49,16 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
+  // Load user data from backend
+  Future<void> _loadUserFromBackend() async {
+    try {
+      // This will be implemented when we have the user profile endpoint
+      // For now, we'll use the local auth service as fallback
+      _currentUser = _authService.currentUser;
+    } catch (e) {
+      print('Error loading user from backend: $e');
+    }
+  }
 
   Future<bool> signUp({
     required String email,
@@ -54,6 +74,25 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Try backend API first
+      final result = await _backendApi.register(
+        email: email,
+        password: password,
+        name: name,
+        profileImageUrl: profileImageUrl,
+        gender: gender,
+        age: age,
+        birthDate: birthDate,
+      );
+
+      if (result != null && result['success'] == true) {
+        // Registration successful via backend
+        _status = AuthStatus.authenticated;
+        notifyListeners();
+        return true;
+      }
+      
+      // Fallback to local auth service
       final user = await _authService.register(
         email: email,
         password: password,

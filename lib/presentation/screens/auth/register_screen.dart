@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/birth_date_picker.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _birthDateController = TextEditingController();
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -31,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _birthDateController.dispose();
     super.dispose();
   }
 
@@ -41,7 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_selectedBirthDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Lütfen doğum tarihinizi seçin'),
+          content: Text('Lütfen doğum tarihinizi girin'),
           backgroundColor: Colors.red,
         ),
       );
@@ -111,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'SendPic ailesine katıl',
+                          'SendPic\'e katıl ve fotoğraflarını paylaş',
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -145,8 +146,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _emailController,
                       label: 'E-posta',
                       hintText: 'ornek@email.com',
-                      keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'E-posta adresi gereklidir';
@@ -160,66 +161,111 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     
                     const SizedBox(height: 16),
                     
-                    // Age and Gender Row
-                    Row(
+                    // Birth Date Field
+                    CustomTextField(
+                      controller: _birthDateController,
+                      label: 'Doğum Tarihi',
+                      hintText: 'GG.AA.YYYY (örn: 15.03.1990)',
+                      prefixIcon: Icons.calendar_today,
+                      keyboardType: TextInputType.datetime,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Doğum tarihi gereklidir';
+                        }
+                        // Validate date format
+                        final dateRegex = RegExp(r'^\d{2}\.\d{2}\.\d{4}$');
+                        if (!dateRegex.hasMatch(value)) {
+                          return 'Tarih formatı: GG.AA.YYYY';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        if (value.length == 10) {
+                          try {
+                            final parts = value.split('.');
+                            final day = int.parse(parts[0]);
+                            final month = int.parse(parts[1]);
+                            final year = int.parse(parts[2]);
+                            _selectedBirthDate = DateTime(year, month, day);
+                          } catch (e) {
+                            // Invalid date
+                          }
+                        }
+                      },
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Gender Field
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: BirthDatePicker(
-                            label: 'Doğum Tarihi',
-                            initialDate: _selectedBirthDate,
-                            onDateChanged: (date) {
-                              setState(() {
-                                _selectedBirthDate = date;
-                              });
-                            },
+                        Text(
+                          'Cinsiyet',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Cinsiyet',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.colorScheme.onSurface,
-                                ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _selectedGender,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(
+                              Icons.wc_outlined,
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                            filled: true,
+                            fillColor: theme.colorScheme.surface,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outline.withOpacity(0.3),
                               ),
-                              const SizedBox(height: 8),
-                              DropdownButtonFormField<String>(
-                                value: _selectedGender,
-                                decoration: InputDecoration(
-                                  prefixIcon: Icon(
-                                    Icons.wc_outlined,
-                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                                  ),
-                                  filled: true,
-                                  fillColor: theme.colorScheme.surface,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: theme.colorScheme.outline.withOpacity(0.2),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                items: const [
-                                  DropdownMenuItem(value: 'male', child: Text('Erkek')),
-                                  DropdownMenuItem(value: 'female', child: Text('Kadın')),
-                                  DropdownMenuItem(value: 'other', child: Text('Diğer')),
-                                ],
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedGender = value;
-                                  });
-                                },
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outline.withOpacity(0.3),
                               ),
-                            ],
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                                width: 2,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
                           ),
+                          hint: Text(
+                            'Cinsiyet seçin',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'male',
+                              child: Text('Erkek'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'female',
+                              child: Text('Kadın'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'other',
+                              child: Text('Diğer'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedGender = value;
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -291,11 +337,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.error.withOpacity(0.1),
+                          color: theme.colorScheme.errorContainer,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: theme.colorScheme.error.withOpacity(0.3),
-                          ),
                         ),
                         child: Row(
                           children: [
@@ -337,13 +380,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         Text(
                           'Zaten hesabın var mı? ',
-                          style: theme.textTheme.bodyMedium,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          ),
                         ),
-                        TextButton(
-                          onPressed: () => context.go('/auth/login'),
+                        GestureDetector(
+                          onTap: () => context.go('/auth/login'),
                           child: Text(
                             'Giriş Yap',
-                            style: TextStyle(
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
