@@ -11,7 +11,7 @@ class AppUpdateService {
   AppUpdateService._internal();
 
   // Server endpoint for version checking
-  static const String _versionCheckUrl = 'https://your-api-endpoint.com/api/version';
+  static const String _versionCheckUrl = 'https://tdxfwcgqesvgrdqidxik.supabase.co/rest/v1/version_check';
   
   // App store URLs
   static const String _playStoreUrl = 'https://play.google.com/store/apps/details?id=com.yourcompany.sendpic';

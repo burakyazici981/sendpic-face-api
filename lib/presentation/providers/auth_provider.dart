@@ -45,6 +45,9 @@ class AuthProvider with ChangeNotifier {
     required String password,
     required String name,
     String? profileImageUrl,
+    String? gender,
+    int? age,
+    DateTime? birthDate,
   }) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
@@ -56,6 +59,9 @@ class AuthProvider with ChangeNotifier {
         password: password,
         name: name,
         profileImageUrl: profileImageUrl,
+        gender: gender,
+        age: age,
+        birthDate: birthDate,
       );
 
       if (user != null) {

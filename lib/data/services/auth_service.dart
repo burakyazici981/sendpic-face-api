@@ -130,6 +130,9 @@ class AuthService {
     required String password,
     required String name,
     String? profileImageUrl,
+    String? gender,
+    int? age,
+    DateTime? birthDate,
   }) async {
     try {
       // Check if user already exists
@@ -150,6 +153,9 @@ class AuthService {
         name: name,
         passwordHash: hashedPassword,
         profileImageUrl: profileImageUrl,
+        gender: gender,
+        age: age,
+        birthDate: birthDate,
         isVerified: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

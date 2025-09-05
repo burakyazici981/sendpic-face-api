@@ -56,6 +56,7 @@ class SupabaseAuthService {
     String? profileImageUrl,
     String? gender,
     int? age,
+    DateTime? birthDate,
   }) async {
     try {
       final AuthResponse response = await _client.auth.signUp(
@@ -66,6 +67,7 @@ class SupabaseAuthService {
           'profile_image_url': profileImageUrl,
           'gender': gender,
           'age': age,
+          'birth_date': birthDate?.toIso8601String().split('T')[0],
         },
       );
 
@@ -77,8 +79,9 @@ class SupabaseAuthService {
           'name': name,
           'profile_image_url': profileImageUrl,
           'bio': null,
-          'gender': null,
+          'gender': gender,
           'age': age,
+          'birth_date': birthDate?.toIso8601String().split('T')[0],
           'is_verified': true, // Auto-verify for now
         });
 
