@@ -10,6 +10,7 @@ import '../../data/services/sqlite_service.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/supabase_posts_service.dart';
 import '../../data/services/supabase_auth_service.dart';
+import '../../data/services/backend_api_service.dart';
 
 enum ContentStatus { initial, loading, loaded, sending, error }
 
@@ -18,6 +19,7 @@ class ContentProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   final SupabasePostsService _supabasePostsService = SupabasePostsService();
   final SupabaseAuthService _supabaseAuthService = SupabaseAuthService();
+  final BackendApiService _backendApi = BackendApiService();
   
   ContentStatus _status = ContentStatus.initial;
   String? _errorMessage;
@@ -82,6 +84,18 @@ class ContentProvider with ChangeNotifier {
   // Load user's token balance
   Future<void> loadTokenBalance(String userId) async {
     try {
+      // Try backend API first
+      if (_backendApi.isLoggedIn) {
+        final result = await _backendApi.getUserTokens();
+        if (result != null && result['success'] == true) {
+          final tokens = result['tokens'];
+          _tokenBalance = (tokens['photo_tokens'] ?? 0) + (tokens['video_tokens'] ?? 0);
+          notifyListeners();
+          return;
+        }
+      }
+      
+      // Fallback to Supabase
       if (_useSupabase) {
         final tokens = await _supabaseAuthService.getUserTokens();
         _tokenBalance = (tokens['photo_tokens'] ?? 0) + (tokens['video_tokens'] ?? 0);
