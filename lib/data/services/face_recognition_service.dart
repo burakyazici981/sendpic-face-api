@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FaceRecognitionService {
-  static const String _baseUrl = 'https://sendpic-face-api.railway.app';
+  static const String _baseUrl = 'https://sendpic-face-api-production.up.railway.app';
   static const String _apiKey = 'face_recognition_key';
   
   // Singleton pattern
