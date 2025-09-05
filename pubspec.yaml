@@ -1,0 +1,75 @@
+name: sendpic_app
+description: SendPic - Sosyal Fotoğraf/Video Paylaşım Uygulaması
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI & Navigation
+  cupertino_icons: ^1.0.6
+  go_router: ^12.1.3
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Database & Storage
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  path_provider: ^2.1.1
+  
+  # Camera & Media
+  camera: ^0.10.5+5
+  image_picker: ^1.0.4
+  video_player: ^2.8.1
+  
+  # Storage & Caching
+  shared_preferences: ^2.2.2
+  
+  # Utils
+  uuid: ^4.2.1
+  intl: ^0.18.1
+  crypto: ^3.0.3
+  
+  # Permissions
+  permission_handler: ^11.1.0
+  
+  # Local Notifications - temporarily removed due to build issues
+  # flutter_local_notifications: ^16.3.0
+  
+  # File handling
+  mime: ^1.0.4
+  
+  # URL Launcher
+  url_launcher: ^6.2.2
+  
+  # HTTP Client for API calls
+  http: ^1.1.0
+  
+  # Supabase
+  supabase_flutter: ^2.5.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  generate: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+  
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: fonts/Roboto-Regular.ttf
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700
