@@ -74,7 +74,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Try backend API first
+      // Use backend API for registration
       final result = await _backendApi.register(
         email: email,
         password: password,
@@ -87,31 +87,23 @@ class AuthProvider with ChangeNotifier {
 
       if (result != null && result['success'] == true) {
         // Registration successful via backend
-        _status = AuthStatus.authenticated;
-        notifyListeners();
-        return true;
-      }
-      
-      // Fallback to local auth service
-      final user = await _authService.register(
-        email: email,
-        password: password,
-        name: name,
-        profileImageUrl: profileImageUrl,
-        gender: gender,
-        age: age,
-        birthDate: birthDate,
-      );
-
-      if (user != null) {
-        _currentUser = user;
+        final userData = result['user'];
+        _currentUser = UserModel(
+          id: userData['id'],
+          email: userData['email'],
+          name: userData['username'] ?? userData['name'],
+          profileImageUrl: userData['profile_image_url'],
+          isVerified: userData['is_verified'] ?? false,
+          createdAt: DateTime.parse(userData['created_at'] ?? DateTime.now().toIso8601String()),
+          updatedAt: DateTime.parse(userData['updated_at'] ?? DateTime.now().toIso8601String()),
+        );
         _status = AuthStatus.authenticated;
         notifyListeners();
         return true;
       }
       
       _status = AuthStatus.error;
-      _errorMessage = 'Hesap oluşturulamadı';
+      _errorMessage = result?['message'] ?? 'Hesap oluşturulamadı';
       notifyListeners();
       return false;
     } catch (e) {
@@ -131,20 +123,31 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final user = await _authService.login(
+      // Use backend API for login
+      final result = await _backendApi.login(
         email: email,
         password: password,
       );
 
-      if (user != null) {
-        _currentUser = user;
+      if (result != null && result['success'] == true) {
+        // Login successful via backend
+        final userData = result['user'];
+        _currentUser = UserModel(
+          id: userData['id'],
+          email: userData['email'],
+          name: userData['username'] ?? userData['name'],
+          profileImageUrl: userData['profile_image_url'],
+          isVerified: userData['is_verified'] ?? false,
+          createdAt: DateTime.parse(userData['created_at'] ?? DateTime.now().toIso8601String()),
+          updatedAt: DateTime.parse(userData['updated_at'] ?? DateTime.now().toIso8601String()),
+        );
         _status = AuthStatus.authenticated;
         notifyListeners();
         return true;
       }
       
       _status = AuthStatus.error;
-      _errorMessage = 'Giriş yapılamadı';
+      _errorMessage = result?['message'] ?? 'Giriş yapılamadı';
       notifyListeners();
       return false;
     } catch (e) {

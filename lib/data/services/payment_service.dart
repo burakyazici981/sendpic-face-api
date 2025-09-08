@@ -7,6 +7,7 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import 'supabase_auth_service.dart';
+import 'backend_api_service.dart';
 
 class PaymentService {
   static final PaymentService _instance = PaymentService._internal();
@@ -15,6 +16,7 @@ class PaymentService {
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   final SupabaseAuthService _authService = SupabaseAuthService();
+  final BackendApiService _backendApi = BackendApiService();
   
   late StreamSubscription<List<PurchaseDetails>> _subscription;
   bool _isAvailable = false;
@@ -146,7 +148,40 @@ class PaymentService {
     }).toList();
   }
   
-  // Purchase tokens
+  // Purchase tokens via backend API
+  Future<bool> purchaseTokensViaBackend({
+    required String tokenType,
+    required int quantity,
+    required String paymentMethod,
+  }) async {
+    try {
+      if (!_backendApi.isLoggedIn) {
+        throw Exception('User not logged in');
+      }
+      
+      // Create payment intent via backend
+      final result = await _backendApi.createPaymentIntent(
+        tokenType: tokenType,
+        quantity: quantity,
+        paymentMethod: paymentMethod,
+      );
+      
+      if (result != null && result['success'] == true) {
+        // Payment intent created successfully
+        // In a real app, you would handle the payment flow here
+        // For now, we'll simulate a successful payment
+        print('Payment intent created: ${result['payment_intent_id']}');
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      print('Error purchasing tokens via backend: $e');
+      return false;
+    }
+  }
+
+  // Purchase tokens (legacy method)
   Future<bool> purchaseTokens(String productId) async {
     try {
       if (!_isAvailable) {

@@ -51,6 +51,9 @@ dependencies:
   # HTTP Client for API calls
   http: ^1.1.0
   
+  # WebSocket for real-time updates
+  web_socket_channel: ^2.4.0
+  
   # Supabase
   supabase_flutter: ^2.5.6
 

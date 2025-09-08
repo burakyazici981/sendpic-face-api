@@ -147,6 +147,43 @@ class ContentProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Use backend API for content upload
+      final result = await _backendApi.uploadContent(
+        mediaFile: mediaFile,
+        contentType: mediaType == MediaType.image ? 'photo' : 'video',
+        caption: caption,
+      );
+
+      if (result != null && result['success'] == true) {
+        // Content uploaded successfully
+        await loadTokenBalance(senderId); // Refresh token balance
+        _status = ContentStatus.loaded;
+        _errorMessage = null;
+        notifyListeners();
+        return true;
+      } else {
+        _status = ContentStatus.error;
+        _errorMessage = result?['message'] ?? 'İçerik gönderilemedi';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _status = ContentStatus.error;
+      _errorMessage = 'İçerik gönderme hatası: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Legacy method - keeping for compatibility but using backend API
+  Future<bool> _sendContentLegacy({
+    required File mediaFile,
+    required MediaType mediaType,
+    required int recipientCount,
+    required String senderId,
+    String? caption,
+  }) async {
+    try {
       // Check if user has enough tokens
       final requiredTokens = _getRequiredTokens(recipientCount, mediaType);
       if (_tokenBalance < requiredTokens) {

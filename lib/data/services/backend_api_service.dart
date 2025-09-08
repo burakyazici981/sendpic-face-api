@@ -9,7 +9,7 @@ class BackendApiService {
   BackendApiService._internal();
 
   // Backend API base URL
-  static const String _baseUrl = 'https://sendpic-backend-api.railway.app';
+  static const String _baseUrl = 'http://localhost:8001';
   
   String? _accessToken;
   String? _userId;
@@ -196,22 +196,137 @@ class BackendApiService {
     }
   }
 
+  // Upload content with file
+  Future<Map<String, dynamic>?> uploadContent({
+    required File mediaFile,
+    required String contentType,
+    String? caption,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$_baseUrl/api/content/upload'),
+      );
+      
+      // Add headers
+      if (_accessToken != null) {
+        request.headers['Authorization'] = 'Bearer $_accessToken';
+      }
+      
+      // Add file
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          mediaFile.path,
+        ),
+      );
+      
+      // Add other fields
+      request.fields['content_type'] = contentType;
+      if (caption != null) {
+        request.fields['caption'] = caption;
+      }
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Content upload failed');
+      }
+    } catch (e) {
+      print('Upload content error: $e');
+      rethrow;
+    }
+  }
+
   // Get user tokens
   Future<Map<String, dynamic>?> getUserTokens() async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/user/tokens'),
+        Uri.parse('$_baseUrl/api/users/tokens'),
         headers: _getHeaders(),
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return {'success': true, 'tokens': jsonDecode(response.body)};
       } else {
         final error = jsonDecode(response.body);
         throw Exception(error['detail'] ?? 'Failed to get user tokens');
       }
     } catch (e) {
       print('Get user tokens error: $e');
+      rethrow;
+    }
+  }
+
+  // Get user profile
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/users/profile'),
+        headers: _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'profile': jsonDecode(response.body)};
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to get user profile');
+      }
+    } catch (e) {
+      print('Get user profile error: $e');
+      rethrow;
+    }
+  }
+
+  // Create payment intent
+  Future<Map<String, dynamic>?> createPaymentIntent({
+    required String tokenType,
+    required int quantity,
+    required String paymentMethod,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/payments/create-payment-intent'),
+        headers: _getHeaders(),
+        body: jsonEncode({
+          'token_type': tokenType,
+          'quantity': quantity,
+          'payment_method': paymentMethod,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to create payment intent');
+      }
+    } catch (e) {
+      print('Create payment intent error: $e');
+      rethrow;
+    }
+  }
+
+  // Get payment transactions
+  Future<Map<String, dynamic>?> getPaymentTransactions() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/users/transactions'),
+        headers: _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'transactions': jsonDecode(response.body)};
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to get transactions');
+      }
+    } catch (e) {
+      print('Get transactions error: $e');
       rethrow;
     }
   }
